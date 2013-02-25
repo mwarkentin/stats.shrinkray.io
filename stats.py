@@ -24,17 +24,26 @@ def update_stats(repo, request):
     for file in files:
         full_name = "{repo}:{file_name}".format(repo=repo, file_name=file['name'])
         key = "shrunk:{0}".format(repo)
+        size = file['size']
         redis.sadd(key, full_name)
         mapping = {
             'name': file['name'],
-            'size:original': file['size']['original'],
-            'size:remaining': file['size']['remaining'],
-            'size:reduced': file['size']['reduced'],
+            'size:original': size['original'],
+            'size:remaining': size['remaining'],
+            'size:reduced': size['reduced'],
             'date': date,
             'branch': branch,
             'commit': commit,
         }
         redis.hmset(full_name, mapping)
+
+        # Update totals
+        redis.hincrby('total', 'size:original', amount=size['original'])
+        redis.hincrby('total:{0}'.format(repo), 'size:original', amount=size['original'])
+        redis.hincrby('total', 'size:remaining', amount=size['remaining'])
+        redis.hincrby('total:{0}'.format(repo), 'size:remaining', amount=size['remaining'])
+        redis.hincrby('total', 'size:reduced', amount=size['reduced'])
+        redis.hincrby('total:{0}'.format(repo), 'size:reduced', amount=size['reduced'])
 
     return "OK"
 
