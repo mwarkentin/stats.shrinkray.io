@@ -53,7 +53,8 @@ def update_stats(repo, request):
 def get_stats(repo):
     keys = redis.smembers("shrunk:{0}".format(repo))
     files = [redis.hgetall(key) for key in keys]
-    return jsonify(files=files)
+    total = redis.hgetall('total:{0}'.format(repo))
+    return jsonify(files=files, total=total)
 
 
 def bool_env(val):
