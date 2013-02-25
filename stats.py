@@ -16,6 +16,7 @@ def repo_stats(repo):
 
 
 def update_stats(repo, request):
+    pipe = redis.pipeline()
     date = request.json.get('date')
     branch = request.json.get('branch')
     commit = request.json.get('commit')
@@ -25,7 +26,7 @@ def update_stats(repo, request):
         full_name = "{repo}:{file_name}".format(repo=repo, file_name=file['name'])
         key = "shrunk:{0}".format(repo)
         size = file['size']
-        redis.sadd(key, full_name)
+        pipe.sadd(key, full_name)
         mapping = {
             'name': file['name'],
             'size:original': size['original'],
@@ -35,15 +36,16 @@ def update_stats(repo, request):
             'branch': branch,
             'commit': commit,
         }
-        redis.hmset(full_name, mapping)
+        pipe.hmset(full_name, mapping)
 
         # Update totals
-        redis.hincrby('total', 'size:original', amount=size['original'])
-        redis.hincrby('total:{0}'.format(repo), 'size:original', amount=size['original'])
-        redis.hincrby('total', 'size:remaining', amount=size['remaining'])
-        redis.hincrby('total:{0}'.format(repo), 'size:remaining', amount=size['remaining'])
-        redis.hincrby('total', 'size:reduced', amount=size['reduced'])
-        redis.hincrby('total:{0}'.format(repo), 'size:reduced', amount=size['reduced'])
+        pipe.hincrby('total', 'size:original', amount=size['original'])
+        pipe.hincrby('total:{0}'.format(repo), 'size:original', amount=size['original'])
+        pipe.hincrby('total', 'size:remaining', amount=size['remaining'])
+        pipe.hincrby('total:{0}'.format(repo), 'size:remaining', amount=size['remaining'])
+        pipe.hincrby('total', 'size:reduced', amount=size['reduced'])
+        pipe.hincrby('total:{0}'.format(repo), 'size:reduced', amount=size['reduced'])
+        pipe.execute()
 
     return "OK"
 
