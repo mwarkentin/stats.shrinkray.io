@@ -7,6 +7,11 @@ app = Flask(__name__)
 redis = StrictRedis()
 
 
+@app.route('/total')
+def total():
+    return jsonify(total=redis.hgetall('total'))
+
+
 @app.route('/repo/<path:repo>', methods=['GET', 'POST'])
 def repo_stats(repo):
     if request.method == 'GET':
