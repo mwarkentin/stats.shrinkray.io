@@ -9,11 +9,13 @@ redis = StrictRedis()
 
 @app.route('/total')
 def total():
+    """Returns the total stats across all repos"""
     return jsonify(total=redis.hgetall('total'))
 
 
 @app.route('/repo/<path:repo>', methods=['GET', 'POST'])
 def repo_stats(repo):
+    """Router for repo stats"""
     if request.method == 'GET':
         return get_stats(repo)
     else:
@@ -21,6 +23,7 @@ def repo_stats(repo):
 
 
 def update_stats(repo, request):
+    """Updates the stats for a specific repo"""
     pipe = redis.pipeline()
     date = request.json.get('date')
     branch = request.json.get('branch')
@@ -58,6 +61,7 @@ def update_stats(repo, request):
 
 
 def get_stats(repo):
+    """Gets the stats for a specific repo"""
     # TODO: Log get_stats
     keys = redis.smembers("shrunk:{0}".format(repo))
     files = [redis.hgetall(key) for key in keys]
