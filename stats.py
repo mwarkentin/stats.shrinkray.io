@@ -50,12 +50,15 @@ def update_stats(repo, request):
         pipe.hincrby('total:{0}'.format(repo), 'size:remaining', amount=size['remaining'])
         pipe.hincrby('total', 'size:reduced', amount=size['reduced'])
         pipe.hincrby('total:{0}'.format(repo), 'size:reduced', amount=size['reduced'])
+
+        # TODO: Log pipe.command_stack
         pipe.execute()
 
     return "OK"
 
 
 def get_stats(repo):
+    # TODO: Log get_stats
     keys = redis.smembers("shrunk:{0}".format(repo))
     files = [redis.hgetall(key) for key in keys]
     total = redis.hgetall('total:{0}'.format(repo))
