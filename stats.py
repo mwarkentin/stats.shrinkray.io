@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask, jsonify, request
+from logbook import info
 from redis import StrictRedis
 
 app = Flask(__name__)
@@ -54,15 +55,16 @@ def update_stats(repo, request):
         pipe.hincrby('total', 'size:reduced', amount=size['reduced'])
         pipe.hincrby('total:{0}'.format(repo), 'size:reduced', amount=size['reduced'])
 
-        # TODO: Log pipe.command_stack
-        pipe.execute()
+    info("UPDATE STATS FOR {0}: {1}".format(repo, pipe.command_stack))
+    pipe.execute()
 
     return "OK"
 
 
 def get_stats(repo):
     """Gets the stats for a specific repo"""
-    # TODO: Log get_stats
+    info("GET STATS FOR {0}".format(repo))
+
     keys = redis.smembers("shrunk:{0}".format(repo))
     files = [redis.hgetall(key) for key in keys]
     total = redis.hgetall('total:{0}'.format(repo))
