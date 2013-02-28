@@ -1,7 +1,7 @@
 import os
 
-from flask import Flask, jsonify, request
-from logbook import info
+from flask import Flask, abort, jsonify, request
+from logbook import error, info
 from redis import StrictRedis
 
 app = Flask(__name__)
@@ -66,6 +66,10 @@ def get_stats(repo):
     info("GET STATS FOR {0}".format(repo))
 
     keys = redis.smembers("shrunk:{0}".format(repo))
+    if not keys:
+        error("REPO NOT FOUND: {0}".format(repo))
+        abort(404)
+
     files = [redis.hgetall(key) for key in keys]
     total = redis.hgetall('total:{0}'.format(repo))
     return jsonify(files=files, total=total)
