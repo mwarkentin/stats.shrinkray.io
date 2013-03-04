@@ -26,24 +26,21 @@ def repo_stats(repo):
 def update_stats(repo, request):
     """Updates the stats for a specific repo"""
     pipe = redis.pipeline()
-    date = request.json.get('date')
-    branch = request.json.get('branch')
-    commit = request.json.get('commit')
-    files = request.json.get('files')
+    print request
+    print request.form
+    print request.json
+    images = request.json.get('images')
 
-    for file in files:
-        full_name = "{repo}:{file_name}".format(repo=repo, file_name=file['name'])
+    for image in images:
+        full_name = "{repo}:{image_name}".format(repo=repo, image_name=image['name'])
         key = "shrunk:{0}".format(repo)
-        size = file['size']
+        size = image['size']
         pipe.sadd(key, full_name)
         mapping = {
-            'name': file['name'],
+            'name': image['name'],
             'size:original': size['original'],
             'size:remaining': size['remaining'],
             'size:reduced': size['reduced'],
-            'date': date,
-            'branch': branch,
-            'commit': commit,
         }
         pipe.hmset(full_name, mapping)
 
