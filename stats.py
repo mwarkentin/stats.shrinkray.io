@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 if os.environ.get('REDISCLOUD_URL'):
     url = urlparse.urlparse(os.environ.get('REDISCLOUD_URL'))
-    r = StrictRedis(host=url.hostname, port=url.port, password=url.password)
+    redis = StrictRedis(host=url.hostname, port=url.port, password=url.password)
 else:
     redis = StrictRedis()
 
