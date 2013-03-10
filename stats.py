@@ -42,6 +42,24 @@ def repo_stats(repo):
         return update_stats(repo, request)
 
 
+@app.route('/repo/<path:repo>/count', methods=['GET', 'POST'])
+def shrink_count(repo):
+    """
+    Returns or updates the number of times a repo has been shrunk.
+
+    This can be used to generate a unique id for a branch.
+
+    """
+
+    key = 'count:{0}'.format(repo)
+    if request.method == 'GET':
+        count = redis.get(key)
+        return jsonify(repo=repo, count=count)
+    else:
+        count = redis.incr(key)
+        return jsonify(repo=repo, count=count)
+
+
 def update_stats(repo, request):
     """
     Updates the stats for a specific repo
