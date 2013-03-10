@@ -17,7 +17,11 @@ else:
 
 @app.route('/total')
 def total():
-    """Returns the total stats across all repos"""
+    """
+    Returns the total stats across all repos
+
+    """
+
     try:
         total = redis.hgetall('total')
     except ConnectionError:
@@ -27,7 +31,11 @@ def total():
 
 @app.route('/repo/<path:repo>', methods=['GET', 'POST'])
 def repo_stats(repo):
-    """Router for repo stats"""
+    """
+    Router for repo stats
+
+    """
+
     if request.method == 'GET':
         return get_stats(repo)
     else:
@@ -35,7 +43,11 @@ def repo_stats(repo):
 
 
 def update_stats(repo, request):
-    """Updates the stats for a specific repo"""
+    """
+    Updates the stats for a specific repo
+
+    """
+
     try:
         pipe = redis.pipeline()
         print request
@@ -73,7 +85,11 @@ def update_stats(repo, request):
 
 
 def get_stats(repo):
-    """Gets the stats for a specific repo"""
+    """
+    Gets the stats for a specific repo
+
+    """
+
     info("GET STATS FOR {0}".format(repo))
 
     try:
@@ -90,7 +106,11 @@ def get_stats(repo):
 
 
 def bool_env(val):
-    """Replaces string based environment values with Python booleans"""
+    """
+    Replaces string based environment values with Python booleans
+
+    """
+
     return True if os.environ.get(val, False) == 'True' else False
 
 if __name__ == '__main__':
