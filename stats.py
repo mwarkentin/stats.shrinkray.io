@@ -1,4 +1,5 @@
 import os
+import urlparse
 
 from flask import Flask, abort, jsonify, request
 from logbook import error, info
@@ -6,7 +7,12 @@ from redis import StrictRedis
 from redis.exceptions import ConnectionError
 
 app = Flask(__name__)
-redis = StrictRedis()
+
+if os.environ.get('REDISCLOUD_URL'):
+    url = urlparse.urlparse(os.environ.get('REDISCLOUD_URL'))
+    r = StrictRedis(host=url.hostname, port=url.port, password=url.password)
+else:
+    redis = StrictRedis()
 
 
 @app.route('/total')
