@@ -3,6 +3,7 @@ import os
 from flask import Flask, abort, jsonify, request
 from logbook import error, info
 from redis import StrictRedis
+from redis.exceptions import ConnectionError
 
 app = Flask(__name__)
 redis = StrictRedis()
@@ -11,7 +12,11 @@ redis = StrictRedis()
 @app.route('/total')
 def total():
     """Returns the total stats across all repos"""
-    return jsonify(total=redis.hgetall('total'))
+    try:
+        total = redis.hgetall('total')
+    except ConnectionError:
+        abort(503)
+    return jsonify(total=total)
 
 
 @app.route('/repo/<path:repo>', methods=['GET', 'POST'])
@@ -25,35 +30,38 @@ def repo_stats(repo):
 
 def update_stats(repo, request):
     """Updates the stats for a specific repo"""
-    pipe = redis.pipeline()
-    print request
-    print request.form
-    print request.json
-    images = request.json.get('images')
+    try:
+        pipe = redis.pipeline()
+        print request
+        print request.form
+        print request.json
+        images = request.json.get('images')
 
-    for image in images:
-        full_name = "{repo}:{image_name}".format(repo=repo, image_name=image['name'])
-        key = "shrunk:{0}".format(repo)
-        size = image['size']
-        pipe.sadd(key, full_name)
-        mapping = {
-            'name': image['name'],
-            'size:original': size['original'],
-            'size:remaining': size['remaining'],
-            'size:reduced': size['reduced'],
-        }
-        pipe.hmset(full_name, mapping)
+        for image in images:
+            full_name = "{repo}:{image_name}".format(repo=repo, image_name=image['name'])
+            key = "shrunk:{0}".format(repo)
+            size = image['size']
+            pipe.sadd(key, full_name)
+            mapping = {
+                'name': image['name'],
+                'size:original': size['original'],
+                'size:remaining': size['remaining'],
+                'size:reduced': size['reduced'],
+            }
+            pipe.hmset(full_name, mapping)
 
-        # Update totals
-        pipe.hincrby('total', 'size:original', amount=size['original'])
-        pipe.hincrby('total:{0}'.format(repo), 'size:original', amount=size['original'])
-        pipe.hincrby('total', 'size:remaining', amount=size['remaining'])
-        pipe.hincrby('total:{0}'.format(repo), 'size:remaining', amount=size['remaining'])
-        pipe.hincrby('total', 'size:reduced', amount=size['reduced'])
-        pipe.hincrby('total:{0}'.format(repo), 'size:reduced', amount=size['reduced'])
+            # Update totals
+            pipe.hincrby('total', 'size:original', amount=size['original'])
+            pipe.hincrby('total:{0}'.format(repo), 'size:original', amount=size['original'])
+            pipe.hincrby('total', 'size:remaining', amount=size['remaining'])
+            pipe.hincrby('total:{0}'.format(repo), 'size:remaining', amount=size['remaining'])
+            pipe.hincrby('total', 'size:reduced', amount=size['reduced'])
+            pipe.hincrby('total:{0}'.format(repo), 'size:reduced', amount=size['reduced'])
 
-    info("UPDATE STATS FOR {0}: {1}".format(repo, pipe.command_stack))
-    pipe.execute()
+        info("UPDATE STATS FOR {0}: {1}".format(repo, pipe.command_stack))
+        pipe.execute()
+    except ConnectionError:
+        abort(503)
 
     return "OK"
 
@@ -62,13 +70,16 @@ def get_stats(repo):
     """Gets the stats for a specific repo"""
     info("GET STATS FOR {0}".format(repo))
 
-    keys = redis.smembers("shrunk:{0}".format(repo))
-    if not keys:
-        error("REPO NOT FOUND: {0}".format(repo))
-        abort(404)
+    try:
+        keys = redis.smembers("shrunk:{0}".format(repo))
+        if not keys:
+            error("REPO NOT FOUND: {0}".format(repo))
+            abort(404)
 
-    files = [redis.hgetall(key) for key in keys]
-    total = redis.hgetall('total:{0}'.format(repo))
+        files = [redis.hgetall(key) for key in keys]
+        total = redis.hgetall('total:{0}'.format(repo))
+    except ConnectionError:
+        abort(503)
     return jsonify(files=files, total=total)
 
 
