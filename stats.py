@@ -53,9 +53,10 @@ def shrink_count(repo):
 
     key = 'count:{0}'.format(repo)
     if request.method == 'GET':
-        return jsonify(repo=repo, count=redis.get(key))
+        count = redis.get(key)
     else:
-        return jsonify(repo=repo, count=redis.incr(key))
+        count = redis.incr(key)
+    return jsonify(repo=repo, count=count)
 
 
 def update_stats(repo, request):
