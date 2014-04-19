@@ -1,1 +1,1 @@
-web: python stats.py
+web: newrelic-admin run-program python stats.py
