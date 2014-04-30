@@ -1,5 +1,6 @@
 Flask==0.10.1
 Logbook==0.6.0
+gunicorn==18.0
 ipdb==0.8
 ipython==2.0.0
 newrelic==2.18.1.15
