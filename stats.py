@@ -6,7 +6,11 @@ from logbook import error, info
 from redis import StrictRedis
 from redis.exceptions import ConnectionError
 
+from utils import bool_env
+
+
 app = Flask(__name__)
+app.debug = bool_env('DEBUG')
 
 if os.environ.get('REDISCLOUD_URL'):
     url = urlparse.urlparse(os.environ.get('REDISCLOUD_URL'))
@@ -122,15 +126,6 @@ def get_stats(repo):
     return jsonify(files=files, total=total)
 
 
-def bool_env(val):
-    """
-    Replaces string based environment values with Python booleans
-
-    """
-
-    return True if os.environ.get(val, False) == 'True' else False
-
 if __name__ == '__main__':
-    app.debug = bool_env('DEBUG')
     port = int(os.environ.get('PORT', 5002))
     app.run(host='0.0.0.0', port=port)
