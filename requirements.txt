@@ -1,4 +1,4 @@
-Flask==0.10.1
+Flask==1.0
 gunicorn==19.3.0
 hiredis==0.2.0
 ipdb==0.8
