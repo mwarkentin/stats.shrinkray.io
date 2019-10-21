@@ -4,7 +4,7 @@ hiredis==0.2.0
 ipdb==0.8
 ipython==7.1.1
 Jinja2==2.7.3
-Logbook==0.9.0
+Logbook==1.5.3
 newrelic==2.50.0.39
 redis==2.10.3
 Werkzeug==0.10.4
